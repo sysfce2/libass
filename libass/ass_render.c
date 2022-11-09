@@ -1010,13 +1010,14 @@ static void init_font_scale(ASS_Renderer *render_priv)
     render_priv->screen_scale_y = font_scr_h / render_priv->track->PlayResY;
 
     ASS_Vector layout_res = ass_layout_res(render_priv);
-    render_priv->blur_scale = font_scr_h / layout_res.y;
+    render_priv->blur_scale_x = font_scr_w / layout_res.x;
+    render_priv->blur_scale_y = font_scr_h / layout_res.y;
     if (render_priv->track->ScaledBorderAndShadow) {
         render_priv->border_scale_x = render_priv->screen_scale_x;
         render_priv->border_scale_y = render_priv->screen_scale_y;
     } else {
-        render_priv->border_scale_x = font_scr_w / layout_res.x;
-        render_priv->border_scale_y = render_priv->blur_scale;
+        render_priv->border_scale_x = render_priv->blur_scale_x;
+        render_priv->border_scale_y = render_priv->blur_scale_y;
     }
 
     if (render_priv->state.apply_font_scale) {
@@ -1024,7 +1025,8 @@ static void init_font_scale(ASS_Renderer *render_priv)
         render_priv->screen_scale_y *= settings_priv->font_size_coeff;
         render_priv->border_scale_x *= settings_priv->font_size_coeff;
         render_priv->border_scale_y *= settings_priv->font_size_coeff;
-        render_priv->blur_scale *= settings_priv->font_size_coeff;
+        render_priv->blur_scale_x *= settings_priv->font_size_coeff;
+        render_priv->blur_scale_y *= settings_priv->font_size_coeff;
     }
 }
 
@@ -1321,7 +1323,7 @@ static void calc_transform_matrix(ASS_Renderer *render_priv,
         z4[i] = x2[i] * sy + z3[i] * cy;
     }
 
-    double dist = 20000 * render_priv->blur_scale;
+    double dist = 20000 * render_priv->blur_scale_y;
     z4[2] += dist;
 
     double scale_x = dist * render_priv->par_scale_x;
@@ -2490,10 +2492,11 @@ static void render_and_combine_glyphs(ASS_Renderer *render_priv,
                 filter->be = info->be;
 
                 int32_t shadow_mask_x, shadow_mask_y;
-                double blur_scale = render_priv->blur_scale * (2 / sqrt(log(256)));
-                // XXX: correct anamorphic blur radii
-                filter->blur_x = quantize_blur(info->blur * blur_scale, &shadow_mask_x);
-                filter->blur_y = quantize_blur(info->blur * blur_scale, &shadow_mask_y);
+                double blur_radius_scale = 2 / sqrt(log(256));
+                double blur_scale_x = render_priv->blur_scale_x * blur_radius_scale;
+                double blur_scale_y = render_priv->blur_scale_y * blur_radius_scale;
+                filter->blur_x = quantize_blur(info->blur * blur_scale_x, &shadow_mask_x);
+                filter->blur_y = quantize_blur(info->blur * blur_scale_y, &shadow_mask_y);
                 if (flags & FILTER_NONZERO_SHADOW) {
                     int32_t x = double_to_d6(info->shadow_x * render_priv->border_scale_x);
                     int32_t y = double_to_d6(info->shadow_y * render_priv->border_scale_y);

@@ -322,7 +322,8 @@ struct ass_renderer {
     double par_scale_x;         // x scale applied to e.g. glyphs to preserve text aspect ratio
     double border_scale_x;
     double border_scale_y;
-    double blur_scale;
+    double blur_scale_x;
+    double blur_scale_y;
 
     RenderContext state;
     TextInfo text_info;
