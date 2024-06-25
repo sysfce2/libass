@@ -159,7 +159,7 @@ typedef struct font_provider_funcs {
     GetDataFunc         get_data;               /* optional/mandatory */
     CheckPostscriptFunc check_postscript;       /* optional */
     CheckGlyphFunc      check_glyph;            /* mandatory */
-    DestroyFontFunc     destroy_font;           /* optional */
+    DestroyFontFunc     destroy_font;           /* mandatory */
     DestroyProviderFunc destroy_provider;       /* optional */
     MatchFontsFunc      match_fonts;            /* optional */
     SubstituteFontFunc  get_substitutions;      /* optional */
@@ -205,11 +205,9 @@ struct ass_font_provider_meta_data {
     int n_family;       // Number of localized family names
     int n_fullname;     // Number of localized full names
 
-    int slant;          // Font slant value from FONT_SLANT_*
+    FT_Long style_flags; // Computed from OS/2 table, or equivalent
     int weight;         // Font weight in TrueType scale, 100-900
                         // See FONT_WEIGHT_*
-    int width;          // Font weight in percent, normally 100
-                        // See FONT_WIDTH_*
 
     /**
      * Whether the font contains PostScript outlines.
